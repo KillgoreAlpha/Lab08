@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Grades Manager</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4c8baf;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        button {
+            background-color: #4c8baf;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #3d6d88;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        #message {
+        margin-top: 20px;
+        padding: 10px;
+        background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Student Grades Manager</h1>
+    
+    <div id="message"></div>
+
+    <!-- Add Student Form -->
+    <div class="form-group">
+        <h2>Add Student Grade</h2>
+        <input type="text" id="studentName" placeholder="Student Name">
+        <input type="number" id="grade" placeholder="Grade" step="0.1">
+        <button onclick="addGrade()">Submit</button>
+    </div>
+
+    <!-- Search Student Form -->
+    <div class="form-group">
+        <h2>Search Student</h2>
+        <input type="text" id="searchName" placeholder="Student Name">
+        <button onclick="searchStudent()">Search</button>
+    </div>
+
+    <!-- Display Area -->
+    <div id="displayArea">
+        <h2>All Students and Grades</h2>
+        <button onclick="loadAllGrades()">Refresh All Grades</button>
+        <table id="gradesTable">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Grade</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="gradesBody"></tbody>
+        </table>
+    </div>
+
+    <script>
+        function displayMessage(message) {
+            document.getElementById('message').textContent = message;
+        }
+
+        function loadAllGrades() {
+            displayMessage('Grades refreshed successfully.');
+            fetch('/grades')
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.getElementById('gradesBody');
+                    tbody.innerHTML = '';
+                    data.grades.forEach(student => {
+                        const row = `
+                            <tr>
+                                <td>${student.name}</td>
+                                <td>${student.grade}</td>
+                                <td>
+                                    <button onclick="editGrade('${student.name}')">Edit</button>
+                                    <button onclick="deleteGrade('${student.name}')">Delete</button>
+                                </td>
+                            </tr>
+                        `;
+                        tbody.innerHTML += row;
+                    });
+                })
+                .catch(error => displayMessage('Error fetching all grades. Please try again.'));
+        }
+
+        function searchStudent() {
+            const name = document.getElementById('searchName').value;
+            if (!name) {
+                displayMessage('Please enter a student name.');
+                return;
+            }
+            fetch(`/grades/${encodeURIComponent(name)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        displayMessage('Student not found');
+                    } else {
+                        displayMessage(`${data.name}'s grade is ${data.grade}`);
+                    }
+                })
+                .catch(error => displayMessage('Error fetching grade. Please try again.'));
+        }
+
+        function addGrade() {
+            const name = document.getElementById('studentName').value;
+            const grade = document.getElementById('grade').value;
+            if (!name || !grade) {
+                displayMessage('Please enter a student name and grade.')
+                return;
+            }
+
+            const url = '/grades';
+            
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name: name, grade: parseFloat(grade) })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    displayMessage('Error: ' + data.error);
+                } else {
+                    document.getElementById('studentName').value = '';
+                    document.getElementById('grade').value = '';
+                    loadAllGrades();
+                    displayMessage('Student added successfully.');
+                }
+            })
+            .catch(error => displayMessage(('Error adding student. Please try again.')));
+        }
+
+        function editGrade(name) {
+            const newGrade = prompt(`Enter new grade for ${name}:`);
+            if (!newGrade) return;
+
+            fetch(`/grades/${encodeURIComponent(name)}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ grade: parseFloat(newGrade) })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    displayMessage('Error: ' + data.error);
+                } else {
+                    loadAllGrades();
+                    displayMessage('Student grade edited successfully.');
+                }
+            })
+            .catch(error => displayMessage('Error updating grade. Please try again.'));
+        }
+
+        function deleteGrade(name) {
+            if (!confirm(`Are you sure you want to delete ${name}'s grade?`)) return;
+
+            fetch(`/grades/${encodeURIComponent(name)}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    displayMessage('Error: ' + data.error);
+                } else {
+                    loadAllGrades();
+                    displayMessage('Student deleted successfully.');
+                }
+            })
+            .catch(error => displayMessage('Error deleting grade. Please try again.'));
+        }
+    </script>
+</body>
+</html>
