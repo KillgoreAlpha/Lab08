@@ -103,7 +103,7 @@ def delete_grade(student_name):
 
 @app.route('/')
 def serve_frontend():
-    return send_from_directory('static', 'index.html')
+    return send_from_directory('static', 'login.html')
 
 if __name__ == '__main__':
     init_db()
