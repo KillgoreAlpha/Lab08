@@ -40,3 +40,4 @@ class courseView(ModelView):
 
 
 admin.add_view(teacherView(Instructor, db.session))
+admin.add_view(courseView(Course,db.session))
