@@ -19,7 +19,7 @@ class studentView(ModelView):
 admin.add_view(studentView(Student, db.session))
 
 
-admin = admin.Admin(app, name="Admin", templaye_mode = 'bootstrap3')
+# admin = admin.Admin(app, name="Admin", templaye_mode = 'bootstrap3')
 
 
 
