@@ -1,46 +1,74 @@
 from flask import Flask, jsonify, request, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
+from db_config import db
 from sqlalchemy.exc import IntegrityError
+from werkzeug.security import generate_password_hash
+from login_instruct import instruct_login_bp
+from login_student import student_login_bp
+
+from models import *
 
 app = Flask(__name__, static_folder='static')
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///grades.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-db = SQLAlchemy(app)
+# db = SQLAlchemy(app)
+db.init_app(app)
 
-class Student(db.Model):
-    username = db.Column(db.String, primary_key=True, unique=True, nullable=False)
-    password = db.Column(db.String, unique=False, nullable=False)
-    name = db.Column(db.String, unique=False, nullable=False)
-    grade = db.Column(db.Float, primary_key=False, unique=False, nullable=True)
+#register blueprints
+app.register_blueprint(student_login_bp,url_prefix='/student/login')
+app.register_blueprint(instruct_login_bp,url_prefix='/instruct/login')
 
-    def to_dict(self):
-        return {"username": self.username, "password": self.password, "name": self.name, "grade": self.grade}
+# class Student(db.Model):
+#     username = db.Column(db.String, primary_key=True, unique=True, nullable=False)
+#     password = db.Column(db.String, unique=False, nullable=False)
+#     name = db.Column(db.String, unique=False, nullable=False)
+#     grade = db.Column(db.Float, primary_key=False, unique=False, nullable=True)
+#     role = db.Column(db.String, unique=False,nullable=False,default="student")
+
+#     def to_dict(self):
+#         return {"username": self.username, 
+#                 #"password": self.password, 
+#                 "name": self.name, 
+#                 "grade": self.grade,
+#                 "role":self.role}
     
-class Instructor(db.Model):
-    username = db.Column(db.String, primary_key=True, unique=True, nullable=False)
-    password = db.Column(db.String, unique=False, nullable=False)
-    name = db.Column(db.String, primary_key=False, unique=False, nullable=False)
+# class Instructor(db.Model):
+#     username = db.Column(db.String, primary_key=True, unique=True, nullable=False)
+#     password = db.Column(db.String, unique=False, nullable=False)
+#     name = db.Column(db.String, primary_key=False, unique=False, nullable=False)
+#     role = db.Column(db.String, unique=False,nullable=False,default="instruct")
 
-    def to_dict(self):
-        return {"username": self.username, "password": self.password, "name": self.name}
+#     def to_dict(self):
+#         return {"username": self.username, 
+#                 #"password": self.password, 
+#                 "name": self.name,
+#                 "role":self.role}
 
-class Course(db.Model):    
-    course = db.Column(db.String, primary_key=True, unique=True, nullable=False)
-    instructor = db.Column(db.String, unique=False, nullable=False)
-    time = db.Column(db.String, unique=False, nullable=False)
-    capacity = db.Column(db.Int, unique=False, nullable=False)
-    students = db.Column(db.String, unique=False, nullable=False)
+# class Course(db.Model):    
+#     course = db.Column(db.String, primary_key=True, unique=True, nullable=False)
+#     instructor = db.Column(db.String, unique=False, nullable=False)
+#     time = db.Column(db.String, unique=False, nullable=False)
+#     capacity = db.Column(db.Integer, unique=False, nullable=False)
+#     students = db.Column(db.String, unique=False, nullable=False)
 
-    def to_dict(self):
-        return {"course": self.course, "instructor": self.instructor, "time": self.time, "capacity": self.capacity, "students": self.students}
+#     def to_dict(self):
+#         return {"course": self.course, "instructor": self.instructor, "time": self.time, "capacity": self.capacity, "students": self.students}
 
 def init_db():
     with app.app_context():
         db.create_all()
         if not Student.query.first():
             sample_data = [
-                Student(name="John Doe", grade=85.5),
-                Student(name="Jane Smith", grade=92.0)
+                Student(name="John Doe", 
+                        grade=85.5, 
+                        username="JDoe1",
+                        password = generate_password_hash("samplepassword1"),
+                        role="student"),
+                Student(name="Jane Smith", 
+                        grade=92.0, 
+                        username ="JaneSmith43",
+                        password = generate_password_hash("samplepassword2"), 
+                        role="student")
             ]
             db.session.add_all(sample_data)
             db.session.commit()
