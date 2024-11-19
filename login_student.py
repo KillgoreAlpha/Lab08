@@ -7,10 +7,9 @@ from models import Student, Course
 student_login_bp = Blueprint('student_login',__name__)
 
 @student_login_bp.route('/login', methods=['POST', 'GET'])
-
 def student_login():
     if request.method == 'GET':
-        return send_from_directory('static', 'login.html')
+        return send_from_directory('static', 'student.html')
         
     if not request.is_json:
         return jsonify({
