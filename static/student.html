@@ -177,10 +177,11 @@ function loadCourses() {
                 tbody.innerHTML = '<tr><td colspan="2">No courses enrolled.</td></tr>';
             } else {
                 data.courses.forEach(course => {
+                    const capacityDisplay = `${course.students.length}/${course.capacity}`;
                     const row = `
                         <tr>
                             <td>${course.course}</td>
-                            <td>${course.capacity}</td>
+                            <td>${capacityDisplay}</td>
                             <td>${course.instructor}</td>
                         </tr>
                     `;
