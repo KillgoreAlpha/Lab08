@@ -2,7 +2,7 @@ from flask import Blueprint,request, jsonify
 from flask_login import  login_user, logout_user, current_user,login_required
 from werkzeug.security import check_password_hash
 from db_config import db
-from models import Student
+from models import Student, Course
 
 student_login_bp = Blueprint('student_login',__name__)
 
@@ -26,3 +26,32 @@ def logout():
         logout_user()
         return jsonify({"message":"Student Logged Out"})
     return jsonify({"error":"Only students can log out here"}), 403
+
+@student_login_bp.route('enroll',methods=['POST'])
+@login_required
+def enroll_course():
+    data = request.get_json()
+    course_id = data.get('course_id')
+
+    student = current_user
+    course = Course.query.get(course_id)
+
+    if not course:
+        return jsonify({"error":"Course not found"}, 404)
+    if student in course.students:
+        return jsonify({"message":"Already enrolled"}, 400)
+    if len(course.students) >= course.capacity:
+        return jsonify({"message":"Course is full"}, 404)
+    course.students.append(student)
+    db.session.commit()
+    return jsonify({"message":f"{student.name} enrolled in {course.name}"})
+
+#view enrolled courses
+@student_login_bp.route('/my-courses',methods=['GET'])
+@login_required
+def get_courses():
+    student = current_user
+    return jsonify({"courses":[course.to_dict() for course in student.courses]})
+
+
+ 
