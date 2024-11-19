@@ -89,8 +89,8 @@
     <!-- Enroll in a Course -->
     <h2>Enroll in a Course</h2>
     <div>
-        <label for="courseId">Course ID:</label>
-        <input type="text" id="courseId" placeholder="Enter Course ID" required>
+        <label for="course">Course:</label>
+        <input type="text" id="course" placeholder="Enter Course" required>
         <button onclick="enroll()">Enroll</button>
     </div>
 
@@ -159,63 +159,71 @@
         }
 
         // Load Courses
-        function loadCourses() {
-            fetch('/student/my-courses')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Failed to load courses');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    const tbody = document.getElementById('courseTable');
-                    tbody.innerHTML = '';
-                    data.courses.forEach(course => {
-                        const row = `
-                            <tr>
-                                <td>${course.course}</td>
-                                <td>${course.instructor}</td>
-                            </tr>
-                        `;
-                        tbody.innerHTML += row;
-                    });
-                })
-                .catch(error => displayMessage('Error loading courses.'));
-        }
+function loadCourses() {
+    const tbody = document.getElementById('courseTable');
+    tbody.innerHTML = '<tr><td colspan="2">Loading...</td></tr>'; // Show loading message
 
-        // Enroll in a Course
-        function enroll() {
-            const courseId = document.getElementById('courseId').value.trim();
-
-            if (!courseId) {
-                displayMessage('Please enter a Course ID.');
-                return;
+    fetch('/student/my-courses')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to load courses');
             }
+            return response.json();
+        })
+        .then(data => {
+            tbody.innerHTML = '';
+            if (data.courses.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="2">No courses enrolled.</td></tr>';
+            } else {
+                data.courses.forEach(course => {
+                    const row = `
+                        <tr>
+                            <td>${course.course}</td>
+                            <td>${course.instructor}</td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            }
+        })
+        .catch(error => displayMessage(`Error loading courses: ${error.message}`));
+}
 
-            fetch('/student/enroll', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ course_id: courseId })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to enroll in course');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.error) {
-                    displayMessage('Error: ' + data.error);
-                } else {
-                    displayMessage('Enrolled successfully!');
-                    loadCourses();
-                }
-            })
-            .catch(error => displayMessage('Error enrolling in course.'));
+// Enroll in a Course
+function enroll() {
+    const courseName = document.getElementById('course').value.trim();
+
+    if (!courseName) {
+        displayMessage('Please enter a Course Name.');
+        return;
+    }
+
+    fetch('/student/enroll', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ course: courseName })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to enroll in course');
         }
+        return response.json();
+    })
+    .then(data => {
+        if (data.error) {
+            displayMessage('Error: ' + data.error);
+        } else {
+            displayMessage('Enrolled successfully!');
+            document.getElementById('course').value = ''; // Clear input field
+            loadCourses(); // Refresh course list
+        }
+    })
+    .catch(error => displayMessage(`Error enrolling in course: ${error.message}`));
+}
 
-        // Automatically load courses when the page loads
-        loadCourses();
+// Automatically load courses when the page loads
+loadCourses();
+
     </script>
 </body>
 </html>

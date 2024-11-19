@@ -49,10 +49,10 @@ def logout():
 @login_required
 def enroll_course():
     data = request.get_json()
-    course_id = data.get('course_id')
+    course = data.get('course')
 
     student = current_user
-    course = Course.query.get(course_id)
+    course = Course.query.get(course)
 
     if not course:
         return jsonify({"error":"Course not found"}, 404)

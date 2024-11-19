@@ -38,8 +38,8 @@ course_student = db.Table(
 )
 
 class Course(db.Model,UserMixin):   
-    id = db.Column(db.Integer, primary_key=True) 
-    course = db.Column(db.String, unique=True, nullable=False)
+    id = db.Column(db.Integer, primary_key=False) 
+    course = db.Column(db.String, primary_key=True,unique=True, nullable=False)
     instructor = db.Column(db.String, unique=False, nullable=False)
     time = db.Column(db.String, unique=False, nullable=False)
     capacity = db.Column(db.Integer, unique=False, nullable=False)
