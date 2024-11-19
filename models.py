@@ -1,7 +1,8 @@
 from werkzeug.security import generate_password_hash
 from db_config import db
+from flask_login import UserMixin
 
-class Student(db.Model):
+class Student(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String, primary_key=True, unique=True, nullable=False)
     password = db.Column(db.String, unique=False, nullable=False)
@@ -17,7 +18,7 @@ class Student(db.Model):
                 "grade": self.grade,
                 "role":self.role}
     
-class Instructor(db.Model):
+class Instructor(db.Model,UserMixin):
     username = db.Column(db.String, primary_key=True, unique=True, nullable=False)
     password = db.Column(db.String, unique=False, nullable=False)
     name = db.Column(db.String, primary_key=False, unique=False, nullable=False)
@@ -29,7 +30,7 @@ class Instructor(db.Model):
                 "name": self.name,
                 "role":self.role}
 
-class Course(db.Model):   
+class Course(db.Model,UserMixin):   
     id = db.Column(db.Integer, primary_key=True) 
     course = db.Column(db.String, primary_key=True, unique=True, nullable=False)
     instructor = db.Column(db.String, unique=False, nullable=False)

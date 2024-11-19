@@ -1,3 +1,4 @@
+import os
 from flask import Flask, jsonify, request, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from db_config import db
@@ -9,6 +10,9 @@ from flask_login import LoginManager
 from models import *
 
 app = Flask(__name__, static_folder='static')
+
+app.secret_key = os.urandom(24)
+
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///grades.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 # db = SQLAlchemy(app)
@@ -16,15 +20,21 @@ db.init_app(app)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = '/student/login'
+# login_manager.login_view = '/student/login'
+
+# @login_manager.user_loader
+# def load_user(user_id):
+#     user = Student.query.get(int(user_id)) or Instructor.query.get(int(user_id))
+#     return user
+
+#register blueprints
+app.register_blueprint(student_login_bp,url_prefix='/student')
+app.register_blueprint(instruct_login_bp,url_prefix='/instruct')
 
 @login_manager.user_loader
 def load_user(user_id):
     user = Student.query.get(int(user_id)) or Instructor.query.get(int(user_id))
     return user
-#register blueprints
-app.register_blueprint(student_login_bp,url_prefix='/student')
-app.register_blueprint(instruct_login_bp,url_prefix='/instruct')
 
 # class Student(db.Model):
 #     username = db.Column(db.String, primary_key=True, unique=True, nullable=False)

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4c8baf;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        button {
+            background-color: #4c8baf;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #3d6d88;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        #message {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Student Dashboard</h1>
+
+    <!-- Message Display -->
+    <div id="message"></div>
+
+    <!-- Login Section -->
+    <h2>Login</h2>
+    <div>
+        <label for="username">Username:</label>
+        <input type="text" id="username" placeholder="Enter username" required>
+        <label for="password">Password:</label>
+        <input type="password" id="password" placeholder="Enter password" required>
+        <button onclick="login()">Login</button>
+    </div>
+
+    <!-- Logout Button -->
+    <div>
+        <button onclick="logout()">Logout</button>
+    </div>
+
+    <!-- View My Courses -->
+    <h2>Your Courses</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Course Name</th>
+                <th>Instructor</th>
+            </tr>
+        </thead>
+        <tbody id="courseTable"></tbody>
+    </table>
+
+    <!-- Enroll in a Course -->
+    <h2>Enroll in a Course</h2>
+    <div>
+        <label for="courseId">Course ID:</label>
+        <input type="text" id="courseId" placeholder="Enter Course ID" required>
+        <button onclick="enroll()">Enroll</button>
+    </div>
+
+    <script>
+        // Function to display messages
+        function displayMessage(message) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = message;
+            setTimeout(() => {
+                messageDiv.textContent = ''; // Clear message after 5 seconds
+            }, 5000);
+        }
+
+        // Login Functionality
+        function login() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            if (!username || !password) {
+                displayMessage('Please enter both username and password.');
+                return;
+            }
+
+            fetch('/student/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to log in');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    displayMessage('Error: ' + data.error);
+                } else {
+                    displayMessage('Login successful!');
+                    loadCourses();
+                }
+            })
+            .catch(error => displayMessage('Error logging in. Please try again.'));
+        }
+
+        // Logout Functionality
+        function logout() {
+            fetch('/student/logout', {
+                method: 'POST',
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to log out');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    displayMessage('Error: ' + data.error);
+                } else {
+                    displayMessage('Logout successful!');
+                    document.getElementById('courseTable').innerHTML = ''; // Clear courses
+                }
+            })
+            .catch(error => displayMessage('Error logging out. Please try again.'));
+        }
+
+        // Load Courses
+        function loadCourses() {
+            fetch('/student/my-courses')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to load courses');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const tbody = document.getElementById('courseTable');
+                    tbody.innerHTML = '';
+                    data.courses.forEach(course => {
+                        const row = `
+                            <tr>
+                                <td>${course.name}</td>
+                                <td>${course.instructor}</td>
+                            </tr>
+                        `;
+                        tbody.innerHTML += row;
+                    });
+                })
+                .catch(error => displayMessage('Error loading courses.'));
+        }
+
+        // Enroll in a Course
+        function enroll() {
+            const courseId = document.getElementById('courseId').value.trim();
+
+            if (!courseId) {
+                displayMessage('Please enter a Course ID.');
+                return;
+            }
+
+            fetch('/student/enroll', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ course_id: courseId })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to enroll in course');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    displayMessage('Error: ' + data.error);
+                } else {
+                    displayMessage('Enrolled successfully!');
+                    loadCourses();
+                }
+            })
+            .catch(error => displayMessage('Error enrolling in course.'));
+        }
+
+        // Automatically load courses when the page loads
+        loadCourses();
+    </script>
+</body>
+</html>
+
+

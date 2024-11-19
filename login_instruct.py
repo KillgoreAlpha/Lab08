@@ -1,4 +1,4 @@
-from flask import Blueprint,request, jsonify
+from flask import Blueprint,request, jsonify, send_from_directory
 from flask_login import  login_user, logout_user, current_user,login_required
 from werkzeug.security import check_password_hash
 from db_config import db
@@ -10,9 +10,19 @@ instruct_login_bp = Blueprint('instruct_login',__name__)
 
 def instruct_login():
     # data = request.get_json()
-    data = request.json
+    if request.method == 'GET':
+        return send_from_directory('static', 'instruct.html')
+
+    if not request.is_json:
+        return jsonify({
+            "error": "Unsupported Media Type",
+            "message": "Request must be JSON with Content-Type: application/json"
+        }), 415
+    
+    data = request.get_json()
+    
     if not data:
-      return jsonify({"error": "Invalid JSON body"}), 400
+        return jsonify({"error": "Invalid JSON body"}), 400
 
     username = data.get('username')
     password = data.get('password')

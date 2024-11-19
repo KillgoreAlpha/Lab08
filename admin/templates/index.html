@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to the Course Manager</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f7f9fc;
+            padding: 50px;
+        }
+        h1 {
+            color: #4c8baf;
+        }
+        .container {
+            margin: 20px auto;
+            max-width: 400px;
+        }
+        .role-button {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 15px;
+            background-color: #4c8baf;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .role-button:hover {
+            background-color: #3d6d88;
+        }
+        .admin-link {
+            font-size: 14px;
+            color: #888;
+            margin-top: 20px;
+            display: none; /* Hide by default */
+        }
+        .admin-link a {
+            text-decoration: none;
+            color: #4c8baf;
+        }
+        .admin-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to the Course Manager</h1>
+    <p>Please select your role to continue:</p>
+    <div class="container">
+        <!-- Student Button -->
+        <button class="role-button" onclick="window.location.href='/student/login'">
+            I am a Student
+        </button>
+        <!-- Instructor Button -->
+        <button class="role-button" onclick="window.location.href='/instruct/login'">
+            I am an Instructor
+        </button>
+        <!-- Hidden Admin Link -->
+        <div class="admin-link">
+            <a href="/admin">Admin Panel</a>
+        </div>
+    </div>
+
+    <script>
+        // Reveal the admin link if a secret key is pressed (optional feature)
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'A' && event.altKey) { // Example: ALT + A to reveal admin
+                document.querySelector('.admin-link').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
