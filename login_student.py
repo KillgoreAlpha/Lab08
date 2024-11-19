@@ -1,4 +1,4 @@
-from flask import Blueprint,request, jsonify
+from flask import Blueprint,request, jsonify, send_from_directory
 from flask_login import  login_user, logout_user, current_user,login_required
 from werkzeug.security import check_password_hash
 from db_config import db
@@ -6,22 +6,36 @@ from models import Student, Course
 
 student_login_bp = Blueprint('student_login',__name__)
 
-@student_login_bp.route('/login',methods=['POST','GET'])
+@student_login_bp.route('/login', methods=['POST', 'GET'])
 
 def student_login():
-    # data = request.get_json()
-    data = request.json
+    if request.method == 'GET':
+        return send_from_directory('static', 'login.html')
+        
+    if not request.is_json:
+        return jsonify({
+            "error": "Unsupported Media Type",
+            "message": "Request must be JSON with Content-Type: application/json"
+        }), 415
+    
+    data = request.get_json()
+    
     if not data:
-      return jsonify({"error": "Invalid JSON body"}), 400
-
+        return jsonify({"error": "Invalid JSON body"}), 400
+        
     username = data.get('username')
     password = data.get('password')
-
-    student = Student.query.filter_by(username=username,role='student').first()
-    if student and check_password_hash(student.password,password):
+    
+    if not username or not password:
+        return jsonify({"error": "Username and password are required"}), 400
+        
+    student = Student.query.filter_by(username=username, role='student').first()
+    
+    if student and check_password_hash(student.password, password):
         login_user(student)
-        return jsonify({"message":"Student login sucessful"})
-    return jsonify({"error":"Username/Password not found or Not Student"}), 401
+        return jsonify({"message": "Student login successful"})
+        
+    return jsonify({"error": "Username/Password not found or Not Student"}), 401
 
 @student_login_bp.route('/logout', methods=['POST'])
 @login_required
