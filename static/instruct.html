@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instructor Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4c8baf;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        button {
+            background-color: #4c8baf;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #3d6d88;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        #message {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Instructor Dashboard</h1>
+
+    <!-- Message Display -->
+    <div id="message"></div>
+
+    <!-- Login Section -->
+    <h2>Login</h2>
+    <div>
+        <label for="username">Username:</label>
+        <input type="text" id="username" placeholder="Enter username">
+        <label for="password">Password:</label>
+        <input type="password" id="password" placeholder="Enter password">
+        <button onclick="login()">Login</button>
+    </div>
+
+    <!-- Logout Button -->
+    <div>
+        <button onclick="logout()">Logout</button>
+    </div>
+
+    <!-- View Classes -->
+    <h2>Your Classes</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Class Name</th>
+                <th>Students Enrolled</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="classTable"></tbody>
+    </table>
+
+    <!-- Edit Grades -->
+    <h2>Edit Grades</h2>
+    <div>
+        <label for="classId">Class ID:</label>
+        <input type="text" id="classId" placeholder="Enter Class ID">
+        <label for="studentId">Student ID:</label>
+        <input type="text" id="studentId" placeholder="Enter Student ID">
+        <label for="newGrade">New Grade:</label>
+        <input type="number" id="newGrade" step="0.1" placeholder="Enter New Grade">
+        <button onclick="editGrade()">Update Grade</button>
+    </div>
+
+    <script>
+        function displayMessage(message) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = message;
+            setTimeout(() => {
+                messageDiv.textContent = ''; // Clear message after 5 seconds
+            }, 5000);
+        }
+
+        function login() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            if (!username || !password) {
+                displayMessage('Please enter both username and password.');
+                return;
+            }
+
+            fetch('/instruct/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to log in');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    displayMessage('Error: ' + data.error);
+                } else {
+                    displayMessage('Login successful!');
+                    loadClasses();
+                }
+            })
+            .catch(error => displayMessage('Error logging in. Please try again.'));
+        }
+
+        function logout() {
+            fetch('/instruct/login/logout', {
+                method: 'POST'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to log out');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    displayMessage('Error: ' + data.error);
+                } else {
+                    displayMessage('Logout successful!');
+                    document.getElementById('classTable').innerHTML = ''; // Clear class list
+                }
+            })
+            .catch(error => displayMessage('Error logging out. Please try again.'));
+        }
+
+        function loadClasses() {
+            fetch('/instruct/login/my-classes')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to load classes');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const tbody = document.getElementById('classTable');
+                    tbody.innerHTML = '';
+                    data.classes.forEach(course => {
+                        const row = `
+                            <tr>
+                                <td>${course.name}</td>
+                                <td>${course.students.length}</td>
+                                <td>
+                                    <button onclick="viewStudents(${course.id})">View Students</button>
+                                </td>
+                            </tr>
+                        `;
+                        tbody.innerHTML += row;
+                    });
+                })
+                .catch(error => displayMessage('Error loading classes.'));
+        }
+
+        function viewStudents(classId) {
+            fetch(`/instruct/login/class/${classId}/students`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to load students');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        displayMessage('Error: ' + data.error);
+                    } else {
+                        displayMessage(`Students in ${data.courses}: ${data.students.map(s => s.name).join(', ')}`);
+                    }
+                })
+                .catch(error => displayMessage('Error loading students.'));
+        }
+
+        function editGrade() {
+            const classId = document.getElementById('classId').value.trim();
+            const studentId = document.getElementById('studentId').value.trim();
+            const newGrade = document.getElementById('newGrade').value.trim();
+
+            if (!classId || !studentId || !newGrade) {
+                displayMessage('Please fill in all fields.');
+                return;
+            }
+
+            fetch(`/instruct/login/class/${classId}/student/${studentId}/grade`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ grade: parseFloat(newGrade) })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to update grade');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    displayMessage('Error: ' + data.error);
+                } else {
+                    displayMessage('Grade updated successfully!');
+                    loadClasses();
+                }
+            })
+            .catch(error => displayMessage('Error updating grade.'));
+        }
+
+        // Automatically load classes when the page loads
+        loadClasses();
+    </script>
+</body>
+</html>
+
+

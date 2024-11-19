@@ -6,10 +6,14 @@ from models import Instructor, Course, Student
 
 instruct_login_bp = Blueprint('instruct_login',__name__)
 
-@instruct_login_bp.route('/',methods=['POST'])
+@instruct_login_bp.route('/login',methods=['POST','GET'])
 
 def instruct_login():
-    data = request.get_json()
+    # data = request.get_json()
+    data = request.json
+    if not data:
+      return jsonify({"error": "Invalid JSON body"}), 400
+
     username = data.get('username')
     password = data.get('password')
 

@@ -5,7 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash
 from login_instruct import instruct_login_bp
 from login_student import student_login_bp
-
+from flask_login import LoginManager
 from models import *
 
 app = Flask(__name__, static_folder='static')
@@ -14,9 +14,17 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 # db = SQLAlchemy(app)
 db.init_app(app)
 
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = '/student/login'
+
+@login_manager.user_loader
+def load_user(user_id):
+    user = Student.query.get(int(user_id)) or Instructor.query.get(int(user_id))
+    return user
 #register blueprints
-app.register_blueprint(student_login_bp,url_prefix='/student/login')
-app.register_blueprint(instruct_login_bp,url_prefix='/instruct/login')
+app.register_blueprint(student_login_bp,url_prefix='/student')
+app.register_blueprint(instruct_login_bp,url_prefix='/instruct')
 
 # class Student(db.Model):
 #     username = db.Column(db.String, primary_key=True, unique=True, nullable=False)
@@ -56,15 +64,20 @@ app.register_blueprint(instruct_login_bp,url_prefix='/instruct/login')
 
 def init_db():
     with app.app_context():
+        db.drop_all()
         db.create_all()
         if not Student.query.first():
             sample_data = [
-                Student(name="John Doe", 
+                Student(
+                        id = 1,
+                        name="John Doe", 
                         grade=85.5, 
                         username="JDoe1",
                         password = generate_password_hash("samplepassword1"),
                         role="student"),
-                Student(name="Jane Smith", 
+                Student(
+                        id = 2,
+                        name="Jane Smith", 
                         grade=92.0, 
                         username ="JaneSmith43",
                         password = generate_password_hash("samplepassword2"), 
@@ -73,61 +86,61 @@ def init_db():
             db.session.add_all(sample_data)
             db.session.commit()
 
-@app.route('/grades', methods=['GET'])
-def get_all_grades():
-    students = Student.query.all()
-    return jsonify({"grades": [student.to_dict() for student in students]})
+# @app.route('/grades', methods=['GET'])
+# def get_all_grades():
+#     students = Student.query.all()
+#     return jsonify({"grades": [student.to_dict() for student in students]})
 
-@app.route('/grades/<student_name>', methods=['GET'])
-def get_grade(student_name):
-    student = Student.query.get(student_name)
-    if student:
-        return jsonify(student.to_dict())
-    return jsonify({"error": "Student not found"}), 404
+# @app.route('/grades/<student_name>', methods=['GET'])
+# def get_grade(student_name):
+#     student = Student.query.get(student_name)
+#     if student:
+#         return jsonify(student.to_dict())
+#     return jsonify({"error": "Student not found"}), 404
 
-@app.route('/grades', methods=['POST'])
-def add_grade():
-    data = request.get_json()
-    if not data or 'name' not in data or 'grade' not in data:
-        return jsonify({"error": "Invalid data"}), 400
+# @app.route('/grades', methods=['POST'])
+# def add_grade():
+#     data = request.get_json()
+#     if not data or 'name' not in data or 'grade' not in data:
+#         return jsonify({"error": "Invalid data"}), 400
     
-    try:
-        new_student = Student(name=data['name'], grade=float(data['grade']))
-        db.session.add(new_student)
-        db.session.commit()
-        return jsonify(new_student.to_dict())
-    except IntegrityError:
-        db.session.rollback()
-        return jsonify({"error": "Student already exists"}), 400
-    except ValueError:
-        return jsonify({"error": "Invalid grade format"}), 400
+#     try:
+#         new_student = Student(name=data['name'], grade=float(data['grade']))
+#         db.session.add(new_student)
+#         db.session.commit()
+#         return jsonify(new_student.to_dict())
+#     except IntegrityError:
+#         db.session.rollback()
+#         return jsonify({"error": "Student already exists"}), 400
+#     except ValueError:
+#         return jsonify({"error": "Invalid grade format"}), 400
 
-@app.route('/grades/<student_name>', methods=['PUT'])
-def update_grade(student_name):
-    student = Student.query.get(student_name)
-    if not student:
-        return jsonify({"error": "Student not found"}), 404
+# @app.route('/grades/<student_name>', methods=['PUT'])
+# def update_grade(student_name):
+#     student = Student.query.get(student_name)
+#     if not student:
+#         return jsonify({"error": "Student not found"}), 404
     
-    data = request.get_json()
-    if not data or 'grade' not in data:
-        return jsonify({"error": "Invalid data"}), 400
+#     data = request.get_json()
+#     if not data or 'grade' not in data:
+#         return jsonify({"error": "Invalid data"}), 400
     
-    try:
-        student.grade = float(data['grade'])
-        db.session.commit()
-        return jsonify(student.to_dict())
-    except ValueError:
-        return jsonify({"error": "Invalid grade format"}), 400
+#     try:
+#         student.grade = float(data['grade'])
+#         db.session.commit()
+#         return jsonify(student.to_dict())
+#     except ValueError:
+#         return jsonify({"error": "Invalid grade format"}), 400
 
-@app.route('/grades/<student_name>', methods=['DELETE'])
-def delete_grade(student_name):
-    student = Student.query.get(student_name)
-    if not student:
-        return jsonify({"error": "Student not found"}), 404
+# @app.route('/grades/<student_name>', methods=['DELETE'])
+# def delete_grade(student_name):
+#     student = Student.query.get(student_name)
+#     if not student:
+#         return jsonify({"error": "Student not found"}), 404
     
-    db.session.delete(student)
-    db.session.commit()
-    return jsonify({"message": f"Deleted grade for {student_name}"})
+#     db.session.delete(student)
+#     db.session.commit()
+#     return jsonify({"message": f"Deleted grade for {student_name}"})
 
 @app.route('/')
 def serve_frontend():
