@@ -3,11 +3,11 @@ from db_config import db
 from flask_login import UserMixin
 
 class Student(db.Model, UserMixin):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String, primary_key=True, unique=True, nullable=False)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    username = db.Column(db.String, unique=True, nullable=False)
     password = db.Column(db.String, unique=False, nullable=False)
     name = db.Column(db.String, unique=False, nullable=False)
-    grade = db.Column(db.Float, primary_key=False, unique=False, nullable=True)
+    grade = db.Column(db.Float ,unique=False, nullable=True)
     role = db.Column(db.String, unique=False,nullable=False,default="student")
 
     def to_dict(self):
@@ -19,24 +19,31 @@ class Student(db.Model, UserMixin):
                 "role":self.role}
     
 class Instructor(db.Model,UserMixin):
-    username = db.Column(db.String, primary_key=True, unique=True, nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String, unique=True, nullable=False)
     password = db.Column(db.String, unique=False, nullable=False)
-    name = db.Column(db.String, primary_key=False, unique=False, nullable=False)
+    name = db.Column(db.String, unique=False, nullable=False)
     role = db.Column(db.String, unique=False,nullable=False,default="instruct")
 
     def to_dict(self):
-        return {"username": self.username, 
+        return {"id":self.id,
+                "username": self.username, 
                 #"password": self.password, 
                 "name": self.name,
                 "role":self.role}
+course_student = db.Table(
+    'course_student',
+    db.Column('course_id', db.Integer, db.ForeignKey('course.id'), primary_key=True),
+    db.Column('student_id', db.Integer, db.ForeignKey('student.id'), primary_key=True)
+)
 
 class Course(db.Model,UserMixin):   
     id = db.Column(db.Integer, primary_key=True) 
-    course = db.Column(db.String, primary_key=True, unique=True, nullable=False)
+    course = db.Column(db.String, unique=True, nullable=False)
     instructor = db.Column(db.String, unique=False, nullable=False)
     time = db.Column(db.String, unique=False, nullable=False)
     capacity = db.Column(db.Integer, unique=False, nullable=False)
-    students = db.Column(db.String, unique=False, nullable=False)
+    students = db.relationship('Student', secondary=course_student, backref='courses')
 
     def to_dict(self):
         return {"id":self.id,
@@ -44,4 +51,4 @@ class Course(db.Model,UserMixin):
                 "instructor": self.instructor,
                   "time": self.time, 
                   "capacity": self.capacity, 
-                  "students": self.students}
+                  "students": [student.to_dict() for student in self.students],}

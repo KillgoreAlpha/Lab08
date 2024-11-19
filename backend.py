@@ -93,7 +93,51 @@ def init_db():
                         password = generate_password_hash("samplepassword2"), 
                         role="student")
             ]
-            db.session.add_all(sample_data)
+            # db.session.add_all(sample_data)
+
+        if not Instructor.query.first():
+            sample_instructors = [
+                Instructor(
+                    id=1,
+                    name="Dr. Alice",
+                    username="Alice",
+                    password=generate_password_hash("securepassword1"),
+                    role="instruct"
+                ),
+                Instructor(
+                    id=2,
+                    name="Prof. Bob",
+                    username="Bob",
+                    password=generate_password_hash("securepassword2"),
+                    role="instruct"
+                )
+            ]
+            db.session.add_all(sample_data + sample_instructors)
+            db.session.commit()
+        # Sample courses
+        if not Course.query.first():
+            sample_courses = [
+                Course(
+                    id=1,
+                    course="Math 101",
+                    instructor="Dr. Alice",
+                    time="Mon/Wed 10:00-11:30",
+                    capacity=30,
+                    students=[]
+                ),
+                Course(
+                    id=2,
+                    course="Physics 201",
+                    instructor="Prof. Bob",
+                    time="Tue/Thu 1:00-2:30",
+                    capacity=25,
+                    students=[]
+                )
+            ]
+
+            sample_courses[0].students.append(sample_data[0])
+            sample_courses[1].students.append(sample_data[1])
+            db.session.add_all(sample_courses)
             db.session.commit()
 
 # @app.route('/grades', methods=['GET'])
