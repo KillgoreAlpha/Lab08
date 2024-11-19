@@ -62,7 +62,7 @@ def enroll_course():
         return jsonify({"message":"Course is full"}, 404)
     course.students.append(student)
     db.session.commit()
-    return jsonify({"message":f"{student.name} enrolled in {course.name}"})
+    return jsonify({"message":f"{student.name} enrolled in {course.course}"})
 
 #view enrolled courses
 @student_login_bp.route('/my-courses',methods=['GET'])

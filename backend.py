@@ -36,42 +36,6 @@ def load_user(user_id):
     user = Student.query.get(int(user_id)) or Instructor.query.get(int(user_id))
     return user
 
-# class Student(db.Model):
-#     username = db.Column(db.String, primary_key=True, unique=True, nullable=False)
-#     password = db.Column(db.String, unique=False, nullable=False)
-#     name = db.Column(db.String, unique=False, nullable=False)
-#     grade = db.Column(db.Float, primary_key=False, unique=False, nullable=True)
-#     role = db.Column(db.String, unique=False,nullable=False,default="student")
-
-#     def to_dict(self):
-#         return {"username": self.username, 
-#                 #"password": self.password, 
-#                 "name": self.name, 
-#                 "grade": self.grade,
-#                 "role":self.role}
-    
-# class Instructor(db.Model):
-#     username = db.Column(db.String, primary_key=True, unique=True, nullable=False)
-#     password = db.Column(db.String, unique=False, nullable=False)
-#     name = db.Column(db.String, primary_key=False, unique=False, nullable=False)
-#     role = db.Column(db.String, unique=False,nullable=False,default="instruct")
-
-#     def to_dict(self):
-#         return {"username": self.username, 
-#                 #"password": self.password, 
-#                 "name": self.name,
-#                 "role":self.role}
-
-# class Course(db.Model):    
-#     course = db.Column(db.String, primary_key=True, unique=True, nullable=False)
-#     instructor = db.Column(db.String, unique=False, nullable=False)
-#     time = db.Column(db.String, unique=False, nullable=False)
-#     capacity = db.Column(db.Integer, unique=False, nullable=False)
-#     students = db.Column(db.String, unique=False, nullable=False)
-
-#     def to_dict(self):
-#         return {"course": self.course, "instructor": self.instructor, "time": self.time, "capacity": self.capacity, "students": self.students}
-
 def init_db():
     with app.app_context():
         db.drop_all()
@@ -140,61 +104,6 @@ def init_db():
             db.session.add_all(sample_courses)
             db.session.commit()
 
-# @app.route('/grades', methods=['GET'])
-# def get_all_grades():
-#     students = Student.query.all()
-#     return jsonify({"grades": [student.to_dict() for student in students]})
-
-# @app.route('/grades/<student_name>', methods=['GET'])
-# def get_grade(student_name):
-#     student = Student.query.get(student_name)
-#     if student:
-#         return jsonify(student.to_dict())
-#     return jsonify({"error": "Student not found"}), 404
-
-# @app.route('/grades', methods=['POST'])
-# def add_grade():
-#     data = request.get_json()
-#     if not data or 'name' not in data or 'grade' not in data:
-#         return jsonify({"error": "Invalid data"}), 400
-    
-#     try:
-#         new_student = Student(name=data['name'], grade=float(data['grade']))
-#         db.session.add(new_student)
-#         db.session.commit()
-#         return jsonify(new_student.to_dict())
-#     except IntegrityError:
-#         db.session.rollback()
-#         return jsonify({"error": "Student already exists"}), 400
-#     except ValueError:
-#         return jsonify({"error": "Invalid grade format"}), 400
-
-# @app.route('/grades/<student_name>', methods=['PUT'])
-# def update_grade(student_name):
-#     student = Student.query.get(student_name)
-#     if not student:
-#         return jsonify({"error": "Student not found"}), 404
-    
-#     data = request.get_json()
-#     if not data or 'grade' not in data:
-#         return jsonify({"error": "Invalid data"}), 400
-    
-#     try:
-#         student.grade = float(data['grade'])
-#         db.session.commit()
-#         return jsonify(student.to_dict())
-#     except ValueError:
-#         return jsonify({"error": "Invalid grade format"}), 400
-
-# @app.route('/grades/<student_name>', methods=['DELETE'])
-# def delete_grade(student_name):
-#     student = Student.query.get(student_name)
-#     if not student:
-#         return jsonify({"error": "Student not found"}), 404
-    
-#     db.session.delete(student)
-#     db.session.commit()
-#     return jsonify({"message": f"Deleted grade for {student_name}"})
 
 @app.route('/')
 def serve_frontend():
