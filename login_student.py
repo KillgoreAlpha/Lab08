@@ -6,15 +6,6 @@ from models import Student, Course
 
 student_login_bp = Blueprint('student_login',__name__)
 
-<<<<<<< HEAD
-@student_login_bp.route('/login', methods=['POST', 'GET'])
-def student_login():
-    if request.method == 'GET':
-        return send_from_directory('static', 'student.html')
-        
-=======
-
-
 @student_login_bp.route('/login',methods=['POST','GET'])
 
 def student_login():
@@ -22,7 +13,6 @@ def student_login():
     if request.method == 'GET':
         return send_from_directory('static', 'student.html')
 
->>>>>>> 7b930b6 (Current Student Login)
     if not request.is_json:
         return jsonify({
             "error": "Unsupported Media Type",
@@ -33,11 +23,6 @@ def student_login():
     
     if not data:
         return jsonify({"error": "Invalid JSON body"}), 400
-<<<<<<< HEAD
-        
-=======
-
->>>>>>> 7b930b6 (Current Student Login)
     username = data.get('username')
     password = data.get('password')
     
