@@ -36,6 +36,7 @@ def load_user(user_id):
     user = Student.query.get(int(user_id)) or Instructor.query.get(int(user_id))
     return user
 
+
 def init_db():
     with app.app_context():
         db.drop_all()
@@ -65,25 +66,25 @@ def init_db():
                     id=1,
                     name="Dr. Alice",
                     username="Alice",
-                    password=generate_password_hash("securepassword1"),
+                    password=generate_password_hash("password1"),
                     role="instruct"
                 ),
                 Instructor(
                     id=2,
                     name="Prof. Bob",
                     username="Bob",
-                    password=generate_password_hash("securepassword2"),
+                    password=generate_password_hash("password2"),
                     role="instruct"
                 )
             ]
             db.session.add_all(sample_data + sample_instructors)
             db.session.commit()
-        # Sample courses
+        
         if not Course.query.first():
             sample_courses = [
                 Course(
                     id=1,
-                    course="Math 101",
+                    course="Math101",
                     instructor="Dr. Alice",
                     time="Mon/Wed 10:00-11:30",
                     capacity=30,
@@ -91,7 +92,7 @@ def init_db():
                 ),
                 Course(
                     id=2,
-                    course="Physics 201",
+                    course="Physics201",
                     instructor="Prof. Bob",
                     time="Tue/Thu 1:00-2:30",
                     capacity=25,

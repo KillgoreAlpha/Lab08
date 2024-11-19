@@ -82,6 +82,8 @@
                 <th>Course Name</th>
                 <th>Capacity</th>
                 <th>Instructor</th>
+                <th>Unenroll</th>
+                <!-- <th>Grade</th> -->
             </tr>
         </thead>
         <tbody id="courseTable"></tbody>
@@ -178,11 +180,14 @@ function loadCourses() {
             } else {
                 data.courses.forEach(course => {
                     const capacityDisplay = `${course.students.length}/${course.capacity}`;
+                    // const studentGrade = `${course.student.grade}`
                     const row = `
                         <tr>
                             <td>${course.course}</td>
                             <td>${capacityDisplay}</td>
                             <td>${course.instructor}</td>
+                            <td><button onclick="unenroll('${course.course}')">Unenroll</button></td>
+                            
                         </tr>
                     `;
                     tbody.innerHTML += row;
@@ -226,6 +231,32 @@ function enroll() {
 
 // Automatically load courses when the page loads
 loadCourses();
+
+function unenroll(courseName) {
+    if (!confirm(`Are you sure you want to unenroll from ${courseName}?`)) return;
+
+    fetch('/student/unenroll', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ course: courseName })
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to unenroll from course');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.error) {
+                displayMessage(`Error: ${data.error}`);
+            } else {
+                displayMessage(`Successfully unenrolled from ${courseName}`);
+                loadCourses(); // Refresh course list
+            }
+        })
+        .catch(error => displayMessage(`Error unenrolling from course: ${error.message}`));
+}
+
 
     </script>
 </body>

@@ -161,7 +161,7 @@
         }
 
         function loadClasses() {
-            fetch('/instruct/login/my-classes')
+            fetch('/instruct/my-classes')
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Failed to load classes');
@@ -174,10 +174,10 @@
                     data.classes.forEach(course => {
                         const row = `
                             <tr>
-                                <td>${course.name}</td>
+                                <td>${course.course}</td>
                                 <td>${course.students.length}</td>
                                 <td>
-                                    <button onclick="viewStudents(${course.id})">View Students</button>
+                                    <button onclick="viewStudents(${courseName})">View Students</button>
                                 </td>
                             </tr>
                         `;
@@ -187,8 +187,8 @@
                 .catch(error => displayMessage('Error loading classes.'));
         }
 
-        function viewStudents(classId) {
-            fetch(`/instruct/login/class/${classId}/students`)
+        function viewStudents(coursenName) {
+            fetch(`/instruct//class/${coursename}/students`)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Failed to load students');
@@ -206,16 +206,16 @@
         }
 
         function editGrade() {
-            const classId = document.getElementById('classId').value.trim();
-            const studentId = document.getElementById('studentId').value.trim();
+            const courseName = document.getElementById('courseCourse').value.trim();
+            const studentName = document.getElementById('studentUsername').value.trim();
             const newGrade = document.getElementById('newGrade').value.trim();
 
-            if (!classId || !studentId || !newGrade) {
+            if (!courseName || !studentName || !newGrade) {
                 displayMessage('Please fill in all fields.');
                 return;
             }
 
-            fetch(`/instruct/login/class/${classId}/student/${studentId}/grade`, {
+            fetch(`/instruct//class/${courseName}/student/${studentUsername}/grade`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ grade: parseFloat(newGrade) })

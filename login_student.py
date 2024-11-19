@@ -64,7 +64,28 @@ def enroll_course():
     db.session.commit()
     return jsonify({"message":f"{student.name} enrolled in {course.course}"})
 
-#view enrolled courses
+@student_login_bp.route('/unenroll', methods=['POST'])
+@login_required
+def unenroll_course():
+    data = request.get_json()
+    course_name = data.get('course')
+
+    student = current_user
+    course = Course.query.filter_by(course=course_name).first()
+
+    if not course:
+        return jsonify({"error": "Course not found"}), 404
+
+    if student not in course.students:
+        return jsonify({"error": "You are not enrolled in this course"}), 400
+
+    
+    course.students.remove(student)
+    db.session.commit()
+
+    return jsonify({"message": f"Unenrolled from {course.course}"})
+
+
 @student_login_bp.route('/my-courses',methods=['GET'])
 @login_required
 def get_courses():
